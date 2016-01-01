@@ -14,6 +14,11 @@
     "express": "~4.13.1",
     "jade": "~1.11.0",
     "morgan": "~1.6.1",
-    "serve-favicon": "~2.3.0"
+    "pouchdb": "^5.1.0",
+    "serve-favicon": "~2.3.0",
+    "lodash": "^3.10.1",
+    "method-override": "^2.3.5"
+  },
+  "devDependencies": {
   }
 }
