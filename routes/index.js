@@ -31,13 +31,13 @@ function randomListName() {
 router.get("/", function(req, res, next) {
   var list_id;
 
-  if(_.isEmpty(req.cookies)) {
+  if(_.isEmpty(req.cookies.list_id)) {
     res.cookie("list_id", randomListName());
 
     res.status(307)
       .redirect("/cookie");
   } else {
-    list_id = res.cookie("list_id");
+    list_id = req.cookies.list_id;
 
     res.status(307)
       .redirect("/list/" + list_id);
@@ -46,12 +46,12 @@ router.get("/", function(req, res, next) {
 
 router.get("/cookie", function(req, res, next) {
   var list_id;
-  
-  if(_.isEmpty(req.cookies)) {
+
+  if(_.isEmpty(req.cookies.list_id)) {
       res.status(307)
         .redirect("/list/" + randomListName() + "?c=f");
   } else {
-    list_id = res.cookie("list_id");
+    list_id = req.cookies.list_id;
 
     res.status(307)
       .redirect("/list/" + list_id);
