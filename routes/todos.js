@@ -47,15 +47,18 @@ router.post('/', function(req, res, next) {
 
     db = connect(list_id);
 
-    db.post({
+    db.put({
       _id: todo_id,
       text: todo,
       created: (new Date()).getTime(),
       completed: false
     }).then(function (response) {
-      // handle response
-      res.status(303)
-        .redirect(req.get("Referrer"));
+      if(req.xhr) {
+          res.send(response);
+      } else {
+          res.status(303)
+            .redirect(req.get("Referrer"));
+      }
     }).catch(function (err) {
       console.log(err);
     });
@@ -77,9 +80,13 @@ router.delete('/:todo_id', function(req, res, next) {
     // http://pouchdb.com/api.html#delete_document
     db.get(todo_id).then(function(doc) {
       return db.remove(doc);
-    }).then(function (result) {
-      res.status(303)
-        .redirect(req.get("Referrer"));
+    }).then(function (response) {
+        if(req.xhr) {
+            res.send(response);
+        } else {
+            res.status(303)
+              .redirect(req.get("Referrer"));
+        }
     }).catch(function (err) {
       console.log(err);
     });
