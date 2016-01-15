@@ -3,13 +3,6 @@
  * If no PouchDB support, but AJAX, then make AJAX requests to prevent page refreshes.
  * If none of this support exists, don't do anything on the client side.
  */
-var todoTemplate = '<form method="post" action="/todo/#{todo_id}?_method=DELETE">\
-                        <input type="hidden" name="todo_id" value="#{todo_id}">\
-                        <input type="hidden" name="list_id" value="#{list_id}">\
-                        <input type="hidden" name="text" value="#{todo_text}">\
-                        #{todo_text}\
-                        <button type="submit">Delete</button>\
-                    </form>';
 var support = {
     "PouchDB": false,
     "AJAX": true,
@@ -40,15 +33,16 @@ if(support.PouchDB && support.AJAX) {
     todosList.addEventListener("click", deleteLocalTodo);
 } else if(!support.PouchDB && support.AJAX) {
     todoForm.addEventListener("submit", addRemoteTodo);
+    todosList.addEventListener("click", deleteRemoteTodo);
 }
 
 function addLocalTodo(event) {
-    var data,
-        element,
-        todoId,
-        listElement,
-        todoMarkup = todoTemplate,
-        todo;
+    var data;
+    var element;
+    var todoId;
+    var listElement;
+    var todoMarkup;
+    var todo;
 
     todo = newTodo.value;
     todoId = generateId();
@@ -78,8 +72,8 @@ function addLocalTodo(event) {
 }
 
 function deleteLocalTodo(event) {
-    var todoId,
-        message;
+    var todoId;
+    var message;
 
     if(event.target.type === "submit") {
         todoId = event.target.parentElement.elements[0].value;
@@ -112,21 +106,19 @@ function addRemoteTodo(event) {
     var todoMarkup;
 
     httpRequest.onreadystatechange = handleResponse;
-    httpRequest.open('POST', url);
+    httpRequest.open("POST", url);
     httpRequest.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     httpRequest.setRequestHeader("X-Requested-With", "XMLHttpRequest");
     httpRequest.send(data);
 
     function handleResponse(event) {
-    //console.log(event.target.readyState);
       if (httpRequest.readyState === XMLHttpRequest.DONE) {
         if (httpRequest.status === 200) {
-            // {"id":"1452734972682","rev":"1-2dc492f6bdc39649bf5c253d30313758","ok":true}
             response = JSON.parse(httpRequest.responseText);
 
             if(response.ok) {
                 todoMarkup = createTodoItem(listId, response.id, newTodo.value);
-                
+
                 todosList.appendChild(todoMarkup);
             } else {
                 console.log("Something was wrong with the HTTP request.");
@@ -140,10 +132,49 @@ function addRemoteTodo(event) {
     event.preventDefault();
 }
 
+function deleteRemoteTodo(event) {
+    if(event.target.type !== "submit") {
+        return;
+    }
+
+    var button = event.target;
+    var url = button.parentElement.action;
+    var todoId = button.parentElement.elements[0].value;
+    var data = "list_id=" + encodeURIComponent(listId) + "&todo_id=" +
+        encodeURIComponent(todoId) + "&_method=DELETE";
+    var response;
+    var todoMarkup;
+
+    httpRequest.onreadystatechange = handleResponse;
+    httpRequest.open("POST", url);
+    httpRequest.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    httpRequest.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+    httpRequest.send(data);
+
+    function handleResponse(event) {
+      if (httpRequest.readyState === XMLHttpRequest.DONE) {
+        if (httpRequest.status === 200) {
+            response = JSON.parse(httpRequest.responseText);
+
+            if(response.ok) {
+                button.parentElement.parentElement.remove();
+                todosCount--;
+            } else {
+                console.log("Something was wrong with the HTTP request.");
+            }
+        } else {
+          console.log("The server did not respond with a 200 status code.");
+        }
+      }
+    }
+
+    event.preventDefault();
+}
+
 function populateList() {
-    var todos,
-        todosMarkup = document.createDocumentFragment(),
-        todo;
+    var todos;
+    var todosMarkup = document.createDocumentFragment();
+    var todo;
 
     // http://pouchdb.com/api.html#batch_fetch
     db.allDocs({
@@ -162,13 +193,19 @@ function populateList() {
         }
 
         todosList.appendChild(todosMarkup);
+        todosCount = todos.rows.length;
     }).catch(function (err) {
         console.log(err);
     });
 }
 
 function createTodoItem(listId, todoId, todo) {
-    var todoMarkup = todoTemplate;
+    var todoMarkup = '<form method="post" action="/todo/#{todo_id}?_method=DELETE">\
+                            <input type="hidden" name="todo_id" value="#{todo_id}">\
+                            <input type="hidden" name="list_id" value="#{list_id}">\
+                            #{todo_text}\
+                            <button type="submit">Delete</button>\
+                        </form>';
 
     todoMarkup = todoMarkup.replace(/#{list_id}/g, listId);
     todoMarkup = todoMarkup.replace(/#{todo_id}/g, todoId);
@@ -192,28 +229,3 @@ function generateId() {
  return (Math.floor((1 + Math.random()) * 0x100) +
          (new Date()).getTime()).toString();
 }
-/*
-
-document.getElementById("ajaxButton").onclick = function() { makeRequest("test.html"); };
-
-function makeRequest(url) {
-  httpRequest = new XMLHttpRequest();
-
-  if (!httpRequest) {
-    alert("Giving up :( Cannot create an XMLHTTP instance");
-    return false;
-  }
-  httpRequest.onreadystatechange = alertContents;
-  httpRequest.open("GET", url);
-  httpRequest.send();
-}
-
-function alertContents() {
-  if (httpRequest.readyState === XMLHttpRequest.DONE) {
-    if (httpRequest.status === 200) {
-      alert(httpRequest.responseText);
-    } else {
-      alert("There was a problem with the request.");
-    }
-  }
-}*/

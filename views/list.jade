@@ -2,23 +2,22 @@ extends layout
 
 block content
     h1 Todo List
+    form(method="post", action="/todo", id="add-todo")
+        input(type="hidden", name="list_id", value=list_id)
+        input(type="text", name="todo", id="new-todo", placeholder="Take out the trash")
+        //- blank space between input and button without CSS
+        | 
+        button(type="submit") Add Todo    
     ul#todos-list
         each todo in todos.rows
             li
                 form(method="post", action="/todo/#{todo.id}?_method=DELETE")
-                    input(type="hidden", name="todo_id", value="#{todo_id}")
+                    input(type="hidden", name="todo_id", value="#{todo.id}")
                     input(type="hidden", name="list_id", value="#{list_id}")
-                    input(type="hidden", name="text", value="#{todo.doc.text}")
                     | #{todo.doc.text} 
                     button(type="submit") Delete
     if todos.total_rows < 1
         p#no-todos No todos, yet. Add one below to get started. 
-    form(method="post", action="/todo", id="add-todo")
-        input(type="hidden", name="list_id", value=list_id)
-        input(type="text", name="todo", id="new-todo")
-        //- blank space between input and button without CSS
-        | 
-        button(type="submit") Add Todo
     if cookies_disabled
         p
             small
