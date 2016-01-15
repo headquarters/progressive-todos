@@ -13,12 +13,13 @@
     "debug": "~2.2.0",
     "express": "~4.13.1",
     "jade": "~1.11.0",
+    "lodash": "^3.10.1",
+    "method-override": "^2.3.5",
     "morgan": "~1.6.1",
     "pouchdb": "^5.1.0",
-    "serve-favicon": "~2.3.0",
-    "lodash": "^3.10.1",
-    "method-override": "^2.3.5"
+    "serve-favicon": "~2.3.0"
   },
   "devDependencies": {
+    "webpack-dev-server": "^1.14.1"
   }
 }
