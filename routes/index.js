@@ -1,27 +1,7 @@
 var express = require("express");
 var _       = require("lodash");
 var router  = express.Router();
-
-/**
- * Modified from http://stackoverflow.com/a/105074
- * Generates a unique-enough-for-this-app ID with 16 alphanumeric characters
- */
-function guid() {
-  function s4() {
-    return Math.floor((1 + Math.random()) * 0x10000)
-      .toString(16)
-      .substring(1);
-  }
-  return s4() + s4() + s4() + s4();
-}
-
-/**
- * Make sure to start the DB name with a letter,
- * per Cloudant's requirements: https://docs.cloudant.com/database.html#create
- */
-function randomListName() {
-  return "l" + guid();
-}
+var utils   = require("../modules/utils");
 
 /**
  * Home page requests check for existing cookie and redirect to DB from there.
@@ -29,34 +9,61 @@ function randomListName() {
  * that verifies whether or not cookies exist
  */
 router.get("/", function(req, res, next) {
-  var list_id;
+  var listID;
 
-  if(_.isEmpty(req.cookies.list_id)) {
-    res.cookie("list_id", randomListName());
+  // Sessions are stored server-side and work without cookies present,
+  // but we check if cookies are present so we can include the session ID
+  // in the URL to provide bookmarking ability for the user's list
+  if(_.isEmpty(req.session.listID)) {
+    // res.send("No list ID found in the session | Session ID: " + req.sessionID);
 
-    res.status(307)
-      .redirect("/cookie");
+      res.cookie("listID", utils.randomListName());
+
+      res.status(307)
+        .redirect("/cookie");
   } else {
-    list_id = req.cookies.list_id;
-
-    res.status(307)
-      .redirect("/list/" + list_id);
+    res.send("Found list ID | Session ID: " + req.sessionID);
   }
+  // res.send("Session: ", req.sessionID);
+
+  // if(_.isEmpty(req.cookies.list_id)) {
+  //   res.cookie("list_id", randomListName());
+  //
+  //   res.status(307)
+  //     .redirect("/cookie");
+  // } else {
+  //   list_id = req.cookies.list_id;
+  //
+  //   res.status(307)
+  //     .redirect("/list/" + list_id);
+  // }
 });
 
 router.get("/cookie", function(req, res, next) {
-  var list_id;
+  var listID;
 
-  if(_.isEmpty(req.cookies.list_id)) {
+  if(_.isEmpty(req.cookies.listID)) {
       res.status(307)
-        .redirect("/list/" + randomListName() + "?c=f");
-  } else {
-    list_id = req.cookies.list_id;
+        .redirect("/list/" + utils.randomListName() + "?s=" + req.sessionID);
+    // Initializes the session with an ID
+    // so we don't generate a new ID on the next request
+    req.session.save();
+} else {
+    listID = req.cookies.listID;
 
-    res.status(307)
-      .redirect("/list/" + list_id);
-  }
+      res.status(307)
+        .redirect("/list/" + list_id);
+}
 
+      // if(_.isEmpty(req.cookies.list_id)) {
+      //     res.status(307)
+      //       .redirect("/list/" + randomListName() + "?c=f");
+      // } else {
+      //   list_id = req.cookies.list_id;
+      //
+      //   res.status(307)
+      //     .redirect("/list/" + list_id);
+      // }
 });
 
 module.exports = router;

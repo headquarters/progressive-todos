@@ -7,4 +7,7 @@ Replication is used to keep two databases in sync, even remotely. But continuous
 by default. This should be called whenever the local state changes in the user's copy of the DB.
 
 Each user gets their own database (e.g. list). This makes the most sense for replication.
-Todos are documents in the databases. 
+Todos are documents in the databases.
+
+Server has to create user, then create their DB, and pass this info back
+to the client. 
