@@ -2,19 +2,6 @@ var pouchdb = require("pouchdb");
 var url     = require("url");
 
 /**
- * Modified from http://stackoverflow.com/a/105074
- * Generates a unique-enough-for-this-app ID with 16 alphanumeric characters
- */
-function guid() {
-  function s4() {
-    return Math.floor((1 + Math.random()) * 0x10000)
-      .toString(16)
-      .substring(1);
-  }
-  return s4() + s4() + s4() + s4();
-}
-
-/**
  * Returns a random letter from the alphabet.
  */
 function randomLetter() {
@@ -32,11 +19,6 @@ function randomListName() {
 
 function randomUserName() {
     return randomLetter() + guid();
-}
-
-function connect(name) {
-  var connection = url.resolve(process.env.CLOUDANT_URL, name);
-  return new pouchdb(connection);
 }
 
 /**

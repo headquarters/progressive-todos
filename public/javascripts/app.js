@@ -3,6 +3,7 @@
  * If no PouchDB support, but AJAX, then make AJAX requests to prevent page refreshes.
  * If none of this support exists, don't do anything on the client side.
  */
+
 var support = {
     "PouchDB": false,
     "AJAX": true,
@@ -100,7 +101,7 @@ function deleteLocalTodo(event) {
 
 function addRemoteTodo(event) {
     var url = event.target.action;
-    var data = "list_id=" + encodeURIComponent(listId) + "&todo=" +
+    var data = "listID=" + encodeURIComponent(listId) + "&todo=" +
         encodeURIComponent(newTodo.value);
     var response;
     var todoMarkup;
@@ -140,7 +141,7 @@ function deleteRemoteTodo(event) {
     var button = event.target;
     var url = button.parentElement.action;
     var todoId = button.parentElement.elements[0].value;
-    var data = "list_id=" + encodeURIComponent(listId) + "&todo_id=" +
+    var data = "listID=" + encodeURIComponent(listId) + "&todoID=" +
         encodeURIComponent(todoId) + "&_method=DELETE";
     var response;
     var todoMarkup;
@@ -200,15 +201,15 @@ function populateList() {
 }
 
 function createTodoItem(listId, todoId, todo) {
-    var todoMarkup = '<form method="post" action="/todo/#{todo_id}?_method=DELETE">\
-                            <input type="hidden" name="todo_id" value="#{todo_id}">\
-                            <input type="hidden" name="list_id" value="#{list_id}">\
+    var todoMarkup = '<form method="post" action="/todo/#{todoID}?_method=DELETE">\
+                            <input type="hidden" name="todoID" value="#{todoID}">\
+                            <input type="hidden" name="listID" value="#{listID}">\
                             #{todo_text}\
                             <button type="submit">Delete</button>\
                         </form>';
 
-    todoMarkup = todoMarkup.replace(/#{list_id}/g, listId);
-    todoMarkup = todoMarkup.replace(/#{todo_id}/g, todoId);
+    todoMarkup = todoMarkup.replace(/#{listID}/g, listId);
+    todoMarkup = todoMarkup.replace(/#{todoID}/g, todoId);
     todoMarkup = todoMarkup.replace(/#{todo_text}/g, todo);
 
     listElement = document.createElement("LI");

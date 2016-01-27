@@ -13,57 +13,31 @@ router.get("/", function(req, res, next) {
 
   // Sessions are stored server-side and work without cookies present,
   // but we check if cookies are present so we can include the session ID
-  // in the URL to provide bookmarking ability for the user's list
+  // in the URL to provide bookmarking ability for the user's session and list
   if(_.isEmpty(req.session.listID)) {
-    // res.send("No list ID found in the session | Session ID: " + req.sessionID);
-
-      res.cookie("listID", utils.randomListName());
+      req.session.listID = utils.randomListName();
 
       res.status(307)
         .redirect("/cookie");
   } else {
-    res.send("Found list ID | Session ID: " + req.sessionID);
+      res.status(307)
+        .redirect("/list/" + req.session.listID);
   }
-  // res.send("Session: ", req.sessionID);
-
-  // if(_.isEmpty(req.cookies.list_id)) {
-  //   res.cookie("list_id", randomListName());
-  //
-  //   res.status(307)
-  //     .redirect("/cookie");
-  // } else {
-  //   list_id = req.cookies.list_id;
-  //
-  //   res.status(307)
-  //     .redirect("/list/" + list_id);
-  // }
 });
 
 router.get("/cookie", function(req, res, next) {
-  var listID;
+    var listID;
+    if(_.isEmpty(req.session.listID)) {
+        listID = utils.randomListName();
 
-  if(_.isEmpty(req.cookies.listID)) {
-      res.status(307)
-        .redirect("/list/" + utils.randomListName() + "?s=" + req.sessionID);
-    // Initializes the session with an ID
-    // so we don't generate a new ID on the next request
-    req.session.save();
-} else {
-    listID = req.cookies.listID;
-
-      res.status(307)
-        .redirect("/list/" + list_id);
-}
-
-      // if(_.isEmpty(req.cookies.list_id)) {
-      //     res.status(307)
-      //       .redirect("/list/" + randomListName() + "?c=f");
-      // } else {
-      //   list_id = req.cookies.list_id;
-      //
-      //   res.status(307)
-      //     .redirect("/list/" + list_id);
-      // }
+        // initialize a new session
+        req.session.save();
+        res.status(307)
+            .redirect("/list/" + listID + "?s=" + req.sessionID);
+     } else {
+         res.status(307)
+            .redirect("/list/" + req.session.listID);
+     }
 });
 
 module.exports = router;
