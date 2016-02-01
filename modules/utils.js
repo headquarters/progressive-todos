@@ -17,23 +17,17 @@ function randomListName() {
     return randomLetter() + guid();
 }
 
-function randomUserName() {
-    return randomLetter() + guid();
-}
-
 /**
  * Generates an ID for a todo based on timestamp plus random 3 digit number.
  * The recommendation is to use put() over post() and provide an ID
  * to support sorting: http://pouchdb.com/api.html#using-dbpost
  */
-function generateId() {
+function generateID() {
     return (Math.floor((1 + Math.random()) * 0x100) +
             (new Date()).getTime()).toString();
 }
 
 module.exports = {
-    randomUserName: randomUserName,
     randomListName: randomListName,
-    connect: connect,
-    generateId: generateId
+    generateID: generateID
 };

@@ -81,8 +81,8 @@ router.get("/:listID?", function(req, res, next) {
                           cookiesDisabled: cookiesDisabled,
                           sessionID: req.sessionID,
                           dbURL: url.resolve(process.env.CLOUDANT_URL, listID),
-                          apiKey: session.apiKey,
-                          apiPassword: session.apiPassword
+                          apiKey: req.session.apiKey,
+                          apiPassword: req.session.apiPassword
                       });
                 });
             }

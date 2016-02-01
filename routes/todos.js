@@ -16,7 +16,7 @@ router.get('/:todoID', function(req, res, next) {
 router.post('/', function(req, res, next) {
     var listID = req.body.listID;
     var todo = req.body.todo;
-    var todoID = utils.generateId();
+    var todoID = utils.generateID();
     var db;
 
     if(!req.session.apiKey) {
