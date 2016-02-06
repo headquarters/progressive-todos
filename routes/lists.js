@@ -1,44 +1,124 @@
-var express = require("express");
-var router  = express.Router();
-var pouchdb = pouchdb = require("pouchdb");
-var url    = require("url");
+var express     = require("express");
+var router      = express.Router();
+var pouchdb     = require("pouchdb");
+var url         = require("url");
+var _           = require("lodash");
+var session     = require("express-session");
+var SQLiteStore = require("connect-sqlite3")(session);
+var getAPIKey   = require("../modules/getAPIKey.js");
 
 // pouchdb.debug.enable("*");
 
-function connect(name) {
-  var connection = url.resolve(process.env.CLOUDANT_URL, name);
-  return new pouchdb(connection);
-}
-
-router.get("/:list_id?", function(req, res, next) {
-    var list_id = req.params ? req.params.list_id : null;
-    var cookies_disabled = (req.query.c === "f") ? true : false;
+router.get("/:listID?", function(req, res, next) {
+    var listID = req.params ? req.params.listID : null;
+    var cookiesDisabled = _.isEmpty(req.query.s) ? false : true;
     var db;
-    var todos = [];
+    var todos = { rows: [], total_rows: 0 };
+    var store;
 
-    if(!list_id) {
-        // Need some real error handling here, but for now just redirect.
+    if(!listID) {
         res.status(302)
-          .redirect("/");
+           .redirect("/");
     }
+console.log("session ID", req.sessionID);
+    if(!req.session.apiKey) {
+console.log("No API key in the request session");
+        // no API key in the session, see if the Store has one
+        // grab the session ID from the URL and look up the session in the Store
+        store = new SQLiteStore;
+        store.get(req.sessionID, function(err, session) {
+            if(err) {
+                throw err;
+            }
 
-    db = connect(list_id);
+            if(session === undefined) {
+                // Invalid or expired session ID
+                res.status(404).send("No session found.");
+            }
 
-    // http://pouchdb.com/api.html#batch_fetch
-    db.allDocs({
-      include_docs: true
-    }).then(function (result) {
-        todos = result;
+            // check for an existing API key
+            if(session.apiKey) {
+                console.log("API key found in Session store", session.apiKey);
 
-        res.status(200)
-          .render("list", {
-              todos: todos,
-              list_id: list_id,
-              cookies_disabled: cookies_disabled
-          });
-    }).catch(function (err) {
-      console.log(err);
-    });
+                db = new pouchdb(url.resolve(process.env.CLOUDANT_URL, listID), {
+                    auth: {
+                        username: session.apiKey,
+                        password: session.apiPassword
+                    }
+                });
+
+                // http://pouchdb.com/api.html#batch_fetch
+                db.allDocs({
+                  include_docs: true
+                }).then(function (result) {
+                    todos = result;
+
+                    req.session.save();
+                    res.status(200)
+                      .render("list", {
+                          todos: todos,
+                          listID: listID,
+                          cookiesDisabled: cookiesDisabled,
+                          sessionID: req.sessionID,
+                          dbURL: url.resolve(process.env.CLOUDANT_URL, listID),
+                          apiKey: session.apiKey,
+                          apiPassword: session.apiPassword
+                      });
+
+                }).catch(function (err) {
+                  console.log(err);
+                });
+
+            } else {
+                console.log("Generate new API key");
+                getAPIKey(listID, function(credentials) {
+                    req.session.apiKey = credentials.key;
+                    req.session.apiPassword = credentials.password;
+                    req.session.save();
+
+                    res.status(200)
+                      .render("list", {
+                          todos: todos,
+                          listID: listID,
+                          cookiesDisabled: cookiesDisabled,
+                          sessionID: req.sessionID,
+                          dbURL: url.resolve(process.env.CLOUDANT_URL, listID),
+                          apiKey: req.session.apiKey,
+                          apiPassword: req.session.apiPassword
+                      });
+                });
+            }
+        });
+    } else {
+console.log("API key found in request session");
+        db = new pouchdb(url.resolve(process.env.CLOUDANT_URL, listID), {
+            auth: {
+                username: req.session.apiKey,
+                password: req.session.apiPassword
+            }
+        });
+
+        // http://pouchdb.com/api.html#batch_fetch
+        db.allDocs({
+          include_docs: true
+        }).then(function (result) {
+            todos = result;
+
+            res.status(200)
+              .render("list", {
+                  todos: todos,
+                  listID: listID,
+                  cookiesDisabled: cookiesDisabled,
+                  sessionID: req.sessionID,
+                  dbURL: url.resolve(process.env.CLOUDANT_URL, listID),
+                  apiKey: req.session.apiKey,
+                  apiPassword: req.session.apiPassword
+              });
+
+        }).catch(function (err) {
+          console.log(err);
+        });
+    }
 });
 
 module.exports = router;

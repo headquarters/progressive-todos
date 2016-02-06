@@ -2,13 +2,17 @@
  * If PouchDB support, plus AJAX, then use local DB and remotely sync on changes.
  * If no PouchDB support, but AJAX, then make AJAX requests to prevent page refreshes.
  * If none of this support exists, don't do anything on the client side.
+ * The progressive enhancement approach here is limited by only checking on page
+ * load. It should check if PE features are available or disabled _during_
+ * the app's runtime, but that isn't addressed currently.
  */
+
 var support = {
-    "PouchDB": false,
+    "PouchDB": true,
     "AJAX": true,
 };
 var db = null;
-var listId = window.location.href.match(/list\/(\w+)$/)[1];
+var remoteDB = null;
 var httpRequest = new XMLHttpRequest();
 var todosList = document.getElementById("todos-list");
 var todoForm = document.getElementById("add-todo");
@@ -17,8 +21,31 @@ var newTodo = document.getElementById("new-todo");
 
 try {
     // throws `ReferenceError: 'ArrayBuffer' is undefined` in IE9
-    db = new PouchDB(listId);
-    populateList();
+    db = new PouchDB(listID);
+    remoteDB = new PouchDB(dbURL, {
+        auth: {
+            username: apiKey,
+            password: apiPassword
+        }
+    });
+
+    db.sync(remoteDB, {
+      live: true,
+      retry: true
+    }).on('change', function (info) {
+      console.log("Local DB changed.", info);
+  }).on('paused', function (err) {
+      if (!err) {
+          populateList();
+      }
+      console.log("Replication pause.", err);
+    }).on('active', function () {
+      console.log("Replicating...");
+    }).on('denied', function (info) {
+      console.log("Document failed to replicate.", info);
+    }).on('error', function (err) {
+      console.log("An error occurred trying to sync the list.", err);
+    });
 } catch(e) {
     support.PouchDB = false;
 }
@@ -45,7 +72,7 @@ function addLocalTodo(event) {
     var todo;
 
     todo = newTodo.value;
-    todoId = generateId();
+    todoId = generateID();
 
     db.put({
       _id: todoId,
@@ -54,7 +81,7 @@ function addLocalTodo(event) {
       completed: false
     }).then(function (response) {
         if (response.ok) {
-            todoMarkup = createTodoItem(listId, todoId, todo);
+            todoMarkup = createTodoItem(listID, todoId, todo);
 
             todosList.appendChild(todoMarkup);
 
@@ -100,7 +127,7 @@ function deleteLocalTodo(event) {
 
 function addRemoteTodo(event) {
     var url = event.target.action;
-    var data = "list_id=" + encodeURIComponent(listId) + "&todo=" +
+    var data = "listID=" + encodeURIComponent(listID) + "&todo=" +
         encodeURIComponent(newTodo.value);
     var response;
     var todoMarkup;
@@ -117,7 +144,7 @@ function addRemoteTodo(event) {
             response = JSON.parse(httpRequest.responseText);
 
             if(response.ok) {
-                todoMarkup = createTodoItem(listId, response.id, newTodo.value);
+                todoMarkup = createTodoItem(listID, response.id, newTodo.value);
 
                 todosList.appendChild(todoMarkup);
             } else {
@@ -140,7 +167,7 @@ function deleteRemoteTodo(event) {
     var button = event.target;
     var url = button.parentElement.action;
     var todoId = button.parentElement.elements[0].value;
-    var data = "list_id=" + encodeURIComponent(listId) + "&todo_id=" +
+    var data = "listID=" + encodeURIComponent(listID) + "&todoID=" +
         encodeURIComponent(todoId) + "&_method=DELETE";
     var response;
     var todoMarkup;
@@ -182,14 +209,18 @@ function populateList() {
     }).then(function (result) {
         todos = result;
 
-        if(todos.rows.length > 0) {
+        while (todosList.firstChild) {
+            todosList.removeChild(todosList.firstChild);
+        }
+
+        if(document.getElementById("no-todos") && todos.rows.length > 0) {
             document.getElementById("no-todos").remove();
         }
 
         for(var i = 0; i < todos.rows.length; i++) {
             todo = todos.rows[i].doc;
 
-            todosMarkup.appendChild(createTodoItem(listId, todo._id, todo.text));
+            todosMarkup.appendChild(createTodoItem(listID, todo._id, todo.text));
         }
 
         todosList.appendChild(todosMarkup);
@@ -199,16 +230,16 @@ function populateList() {
     });
 }
 
-function createTodoItem(listId, todoId, todo) {
-    var todoMarkup = '<form method="post" action="/todo/#{todo_id}?_method=DELETE">\
-                            <input type="hidden" name="todo_id" value="#{todo_id}">\
-                            <input type="hidden" name="list_id" value="#{list_id}">\
+function createTodoItem(listID, todoId, todo) {
+    var todoMarkup = '<form method="post" action="/todo/#{todoID}?_method=DELETE">\
+                            <input type="hidden" name="todoID" value="#{todoID}">\
+                            <input type="hidden" name="listID" value="#{listID}">\
                             #{todo_text}\
                             <button type="submit">Delete</button>\
                         </form>';
 
-    todoMarkup = todoMarkup.replace(/#{list_id}/g, listId);
-    todoMarkup = todoMarkup.replace(/#{todo_id}/g, todoId);
+    todoMarkup = todoMarkup.replace(/#{listID}/g, listID);
+    todoMarkup = todoMarkup.replace(/#{todoID}/g, todoId);
     todoMarkup = todoMarkup.replace(/#{todo_text}/g, todo);
 
     listElement = document.createElement("LI");
@@ -225,7 +256,7 @@ function createTodoItem(listId, todoId, todo) {
  * The recommendation is to use put() over post() and provide an ID
  * to support sorting: http://pouchdb.com/api.html#using-dbpost
  */
-function generateId() {
+function generateID() {
  return (Math.floor((1 + Math.random()) * 0x100) +
          (new Date()).getTime()).toString();
 }

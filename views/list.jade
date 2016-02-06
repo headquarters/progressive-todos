@@ -2,23 +2,25 @@ extends layout
 
 block content
     h1 Todo List
-    form(method="post", action="/todo", id="add-todo")
-        input(type="hidden", name="list_id", value=list_id)
+    form(method="post", action="/todo?s=#{sessionID}", id="add-todo")
+        input(type="hidden", name="listID", value=listID)
         input(type="text", name="todo", id="new-todo", placeholder="Take out the trash")
+        input(type="hidden" name="cookiesDisabled", value="#{cookiesDisabled}")
         //- blank space between input and button without CSS
         | 
-        button(type="submit") Add Todo    
+        button(type="submit") Add Todo
     ul#todos-list
         each todo in todos.rows
             li
-                form(method="post", action="/todo/#{todo.id}?_method=DELETE")
-                    input(type="hidden", name="todo_id", value="#{todo.id}")
-                    input(type="hidden", name="list_id", value="#{list_id}")
+                form(method="post", action="/todo/#{todo.id}?_method=DELETE&s=#{sessionID}")
+                    input(type="hidden", name="todoID", value="#{todo.id}")
+                    input(type="hidden", name="listID", value="#{listID}")
+                    input(type="hidden" name="cookiesDisabled", value="#{cookiesDisabled}")
                     | #{todo.doc.text} 
                     button(type="submit") Delete
     if todos.total_rows < 1
-        p#no-todos No todos, yet. Add one below to get started. 
-    if cookies_disabled
+        p#no-todos No todos, yet. Add one above to get started. 
+    if cookiesDisabled
         p
             small
                 | Looks like cookies are disabled. You'll have to bookmark this page to return to it.

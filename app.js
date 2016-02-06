@@ -4,7 +4,10 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-var methodOverride = require('method-override')
+var methodOverride = require('method-override');
+var session = require('express-session');
+var SQLiteStore = require('connect-sqlite3')(session);
+var uuid = require('node-uuid');
 
 var routes = require('./routes/index');
 var todos = require('./routes/todos');
@@ -17,12 +20,30 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
 // uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+// app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(methodOverride('_method'));
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(cookieParser(process.env.SESSION_SECRET));
+app.use(session({
+    secret: process.env.SESSION_SECRET,
+    name: "sid",
+    store: new SQLiteStore,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        maxAge: 3600000 * 24 * 7 // 1 week
+    },
+    genid: function(req) {
+        if(req.query.s) {
+            // use session ID in URL when available
+            return req.query.s;
+        } else {
+            return uuid();
+        }
+    },
+}));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);

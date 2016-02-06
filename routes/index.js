@@ -1,27 +1,7 @@
 var express = require("express");
 var _       = require("lodash");
 var router  = express.Router();
-
-/**
- * Modified from http://stackoverflow.com/a/105074
- * Generates a unique-enough-for-this-app ID with 16 alphanumeric characters
- */
-function guid() {
-  function s4() {
-    return Math.floor((1 + Math.random()) * 0x10000)
-      .toString(16)
-      .substring(1);
-  }
-  return s4() + s4() + s4() + s4();
-}
-
-/**
- * Make sure to start the DB name with a letter,
- * per Cloudant's requirements: https://docs.cloudant.com/database.html#create
- */
-function randomListName() {
-  return "l" + guid();
-}
+var utils   = require("../modules/utils");
 
 /**
  * Home page requests check for existing cookie and redirect to DB from there.
@@ -29,34 +9,35 @@ function randomListName() {
  * that verifies whether or not cookies exist
  */
 router.get("/", function(req, res, next) {
-  var list_id;
+  var listID;
 
-  if(_.isEmpty(req.cookies.list_id)) {
-    res.cookie("list_id", randomListName());
+  // Sessions are stored server-side and work without cookies present,
+  // but we check if cookies are present so we can include the session ID
+  // in the URL to provide bookmarking ability for the user's session and list
+  if(_.isEmpty(req.session.listID)) {
+      req.session.listID = utils.randomListName();
 
-    res.status(307)
-      .redirect("/cookie");
+      res.status(307)
+        .redirect("/cookie");
   } else {
-    list_id = req.cookies.list_id;
-
-    res.status(307)
-      .redirect("/list/" + list_id);
+      res.status(307)
+        .redirect("/list/" + req.session.listID);
   }
 });
 
 router.get("/cookie", function(req, res, next) {
-  var list_id;
+    var listID;
+    if(_.isEmpty(req.session.listID)) {
+        listID = utils.randomListName();
 
-  if(_.isEmpty(req.cookies.list_id)) {
-      res.status(307)
-        .redirect("/list/" + randomListName() + "?c=f");
-  } else {
-    list_id = req.cookies.list_id;
-
-    res.status(307)
-      .redirect("/list/" + list_id);
-  }
-
+        // initialize a new session
+        req.session.save();
+        res.status(307)
+            .redirect("/list/" + listID + "?s=" + req.sessionID);
+     } else {
+         res.status(307)
+            .redirect("/list/" + req.session.listID);
+     }
 });
 
 module.exports = router;
