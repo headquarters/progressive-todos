@@ -2,13 +2,17 @@
  * If PouchDB support, plus AJAX, then use local DB and remotely sync on changes.
  * If no PouchDB support, but AJAX, then make AJAX requests to prevent page refreshes.
  * If none of this support exists, don't do anything on the client side.
+ * The progressive enhancement approach here is limited by only checking on page
+ * load. It should check if PE features are available or disabled _during_
+ * the app's runtime, but that isn't addressed currently.
  */
 
 var support = {
-    "PouchDB": false,
+    "PouchDB": true,
     "AJAX": true,
 };
 var db = null;
+var remoteDB = null;
 var httpRequest = new XMLHttpRequest();
 var todosList = document.getElementById("todos-list");
 var todoForm = document.getElementById("add-todo");
@@ -18,7 +22,30 @@ var newTodo = document.getElementById("new-todo");
 try {
     // throws `ReferenceError: 'ArrayBuffer' is undefined` in IE9
     db = new PouchDB(listID);
-    populateList();
+    remoteDB = new PouchDB(dbURL, {
+        auth: {
+            username: apiKey,
+            password: apiPassword
+        }
+    });
+
+    db.sync(remoteDB, {
+      live: true,
+      retry: true
+    }).on('change', function (info) {
+      console.log("Local DB changed.", info);
+  }).on('paused', function (err) {
+      if (!err) {
+          populateList();
+      }
+      console.log("Replication pause.", err);
+    }).on('active', function () {
+      console.log("Replicating...");
+    }).on('denied', function (info) {
+      console.log("Document failed to replicate.", info);
+    }).on('error', function (err) {
+      console.log("An error occurred trying to sync the list.", err);
+    });
 } catch(e) {
     support.PouchDB = false;
 }
@@ -182,7 +209,11 @@ function populateList() {
     }).then(function (result) {
         todos = result;
 
-        if(todos.rows.length > 0) {
+        while (todosList.firstChild) {
+            todosList.removeChild(todosList.firstChild);
+        }
+
+        if(document.getElementById("no-todos") && todos.rows.length > 0) {
             document.getElementById("no-todos").remove();
         }
 

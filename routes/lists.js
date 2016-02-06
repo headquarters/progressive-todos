@@ -20,8 +20,9 @@ router.get("/:listID?", function(req, res, next) {
         res.status(302)
            .redirect("/");
     }
-
+console.log("session ID", req.sessionID);
     if(!req.session.apiKey) {
+console.log("No API key in the request session");
         // no API key in the session, see if the Store has one
         // grab the session ID from the URL and look up the session in the Store
         store = new SQLiteStore;
@@ -37,7 +38,7 @@ router.get("/:listID?", function(req, res, next) {
 
             // check for an existing API key
             if(session.apiKey) {
-                console.log("API key found", session.apiKey);
+                console.log("API key found in Session store", session.apiKey);
 
                 db = new pouchdb(url.resolve(process.env.CLOUDANT_URL, listID), {
                     auth: {
@@ -52,6 +53,7 @@ router.get("/:listID?", function(req, res, next) {
                 }).then(function (result) {
                     todos = result;
 
+                    req.session.save();
                     res.status(200)
                       .render("list", {
                           todos: todos,
@@ -88,6 +90,7 @@ router.get("/:listID?", function(req, res, next) {
             }
         });
     } else {
+console.log("API key found in request session");
         db = new pouchdb(url.resolve(process.env.CLOUDANT_URL, listID), {
             auth: {
                 username: req.session.apiKey,
