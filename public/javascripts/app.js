@@ -232,10 +232,10 @@ function populateList() {
 
 function createTodoItem(listID, todoId, todo) {
     var todoMarkup = '<form method="post" action="/todo/#{todoID}?_method=DELETE">\
+                            <button type="submit" class="delete-todo">Delete</button>\
                             <input type="hidden" name="todoID" value="#{todoID}">\
                             <input type="hidden" name="listID" value="#{listID}">\
-                            #{todo_text}\
-                            <button type="submit">Delete</button>\
+                            <span class="todo-text">#{todo_text}</span>\
                         </form>';
 
     todoMarkup = todoMarkup.replace(/#{listID}/g, listID);
@@ -243,7 +243,7 @@ function createTodoItem(listID, todoId, todo) {
     todoMarkup = todoMarkup.replace(/#{todo_text}/g, todo);
 
     listElement = document.createElement("LI");
-
+    listElement.className = "todo-item";
     listElement.innerHTML = todoMarkup;
 
     todosCount++;

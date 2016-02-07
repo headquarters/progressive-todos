@@ -1,0 +1,51 @@
+body, input, button {
+    font-family: sans-serif;
+    font-size: 1em;
+}
+
+input, button {
+    font-family: serif;
+}
+
+main {
+    max-width: 20em;
+    margin: 0 auto;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+ul li {
+    margin: 1em 0;
+}
+
+.todo-item:before,
+.todo-item:after {
+    content: " ";
+    display: table;
+}
+
+.todo-item:after {
+    clear: both;
+}
+
+.delete-todo {
+    float: right;
+}
+
+.todo-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.todo-text {
+    flex: 0 1 auto;
+    margin-right: 1em;
+}
+
+.delete-todo {
+    flex: 0 0 auto;
+}
