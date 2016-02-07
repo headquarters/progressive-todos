@@ -8,16 +8,18 @@ block content
         input(type="hidden" name="cookiesDisabled", value="#{cookiesDisabled}")
         //- blank space between input and button without CSS
         | 
-        button(type="submit") Add Todo
+        button.add-todo(type="submit") Add Todo
     ul#todos-list
         each todo in todos.rows
-            li
+            li.todo-item
                 form(method="post", action="/todo/#{todo.id}?_method=DELETE&s=#{sessionID}")
                     input(type="hidden", name="todoID", value="#{todo.id}")
                     input(type="hidden", name="listID", value="#{listID}")
                     input(type="hidden" name="cookiesDisabled", value="#{cookiesDisabled}")
-                    | #{todo.doc.text} 
-                    button(type="submit") Delete
+                    | 
+                    div.todo-wrapper
+                        span.todo-text #{todo.doc.text} 
+                        button.delete-todo(type="submit") Delete
     if todos.total_rows < 1
         p#no-todos No todos, yet. Add one above to get started. 
     if cookiesDisabled

@@ -1,10 +1,13 @@
 doctype html
-html
+html.no-js
     head
         title TODOs | A Progressive Webapp
+        script.
+            document.documentElement.className = "js";
         link(rel="stylesheet", href="/stylesheets/style.css")
     body
-        block content
+        main
+            block content
         script(src="//cdn.jsdelivr.net/pouchdb/5.1.0/pouchdb.min.js")
         script.
             var apiKey = "#{apiKey}";
