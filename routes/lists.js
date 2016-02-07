@@ -7,8 +7,6 @@ var session     = require("express-session");
 var SQLiteStore = require("connect-sqlite3")(session);
 var getAPIKey   = require("../modules/getAPIKey.js");
 
-// pouchdb.debug.enable("*");
-
 router.get("/:listID?", function(req, res, next) {
     var listID = req.params ? req.params.listID : null;
     var cookiesDisabled = _.isEmpty(req.query.s) ? false : true;
@@ -20,9 +18,8 @@ router.get("/:listID?", function(req, res, next) {
         res.status(302)
            .redirect("/");
     }
-console.log("session ID", req.sessionID);
+
     if(!req.session.apiKey) {
-console.log("No API key in the request session");
         // no API key in the session, see if the Store has one
         // grab the session ID from the URL and look up the session in the Store
         store = new SQLiteStore;
@@ -38,8 +35,6 @@ console.log("No API key in the request session");
 
             // check for an existing API key
             if(session.apiKey) {
-                console.log("API key found in Session store", session.apiKey);
-
                 db = new pouchdb(url.resolve(process.env.CLOUDANT_URL, listID), {
                     auth: {
                         username: session.apiKey,
@@ -90,7 +85,6 @@ console.log("No API key in the request session");
             }
         });
     } else {
-console.log("API key found in request session");
         db = new pouchdb(url.resolve(process.env.CLOUDANT_URL, listID), {
             auth: {
                 username: req.session.apiKey,
