@@ -34,7 +34,7 @@ try {
       retry: true
     }).on('change', function (info) {
       console.log("Local DB changed.", info);
-  }).on('paused', function (err) {
+    }).on('paused', function (err) {
       if (!err) {
           populateList();
       }
