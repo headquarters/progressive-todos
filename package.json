@@ -5,7 +5,10 @@
   "author": "Michael Head",
   "license": "ISC",
   "scripts": {
-    "start": "webpack && node app.js"
+    "start": "webpack && node app.js",
+    "coverage": "istanbul cover _mocha",
+    "test": "mocha",
+    "test:watch": "mocha --watch"
   },
   "dependencies": {
     "body-parser": "~1.13.2",
@@ -23,5 +26,9 @@
     "serve-favicon": "~2.3.0",
     "webpack": "^1.14.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "istanbul": "^0.4.5",
+    "mocha": "^3.2.0",
+    "supertest": "^2.0.1"
+  }
 }
