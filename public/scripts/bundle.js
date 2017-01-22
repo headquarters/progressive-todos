@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * If PouchDB support, plus AJAX, then use local DB and remotely sync on changes.
  * If no PouchDB support, but AJAX, then make AJAX requests to prevent page refreshes.
@@ -88,6 +90,8 @@ function addLocalTodo(event) {
             if(document.getElementById("no-todos")) {
               document.getElementById("no-todos").remove();
             }
+
+            newTodo.value = '';
         } else {
             console.log("Problem adding new TODO to local database.");
         }
@@ -242,7 +246,7 @@ function createTodoItem(listID, todoId, todo) {
     todoMarkup = todoMarkup.replace(/#{todoID}/g, todoId);
     todoMarkup = todoMarkup.replace(/#{todo_text}/g, todo);
 
-    listElement = document.createElement("LI");
+    var listElement = document.createElement("LI");
     listElement.className = "todo-item";
     listElement.innerHTML = todoMarkup;
 
