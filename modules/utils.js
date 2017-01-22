@@ -1,6 +1,3 @@
-var pouchdb = require("pouchdb");
-var url     = require("url");
-
 /**
  * Modified from http://stackoverflow.com/a/105074
  * Generates a unique-enough-for-this-app ID with 16 alphanumeric characters

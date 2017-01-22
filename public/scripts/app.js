@@ -7,17 +7,19 @@
  * the app's runtime, but that isn't addressed currently.
  */
 
+var generateID = require('../../modules/utils').generateID;
+
 var support = {
-    "PouchDB": true,
-    "AJAX": true,
+    'PouchDB': true,
+    'AJAX': true,
 };
 var db = null;
 var remoteDB = null;
 var httpRequest = new XMLHttpRequest();
-var todosList = document.getElementById("todos-list");
-var todoForm = document.getElementById("add-todo");
-var todosCount = document.getElementById("todos-list").children.length;
-var newTodo = document.getElementById("new-todo");
+var todosList = document.getElementById('todos-list');
+var todoForm = document.getElementById('add-todo');
+var todosCount = document.getElementById('todos-list').children.length;
+var newTodo = document.getElementById('new-todo');
 
 try {
     // throws `ReferenceError: 'ArrayBuffer' is undefined` in IE9
@@ -33,18 +35,18 @@ try {
       live: true,
       retry: true
     }).on('change', function (info) {
-      console.log("Local DB changed.", info);
+      console.log('Local DB changed.', info);
     }).on('paused', function (err) {
       if (!err) {
           populateList();
       }
-      console.log("Replication pause.", err);
+      console.log('Replication pause.', err);
     }).on('active', function () {
-      console.log("Replicating...");
+      console.log('Replicating...');
     }).on('denied', function (info) {
-      console.log("Document failed to replicate.", info);
+      console.log('Document failed to replicate.', info);
     }).on('error', function (err) {
-      console.log("An error occurred trying to sync the list.", err);
+      console.log('An error occurred trying to sync the list.', err);
     });
 } catch(e) {
     support.PouchDB = false;
@@ -56,11 +58,11 @@ if(!httpRequest) {
 
 if(support.PouchDB && support.AJAX) {
     // support for PouchDB and AJAX probably go hand-in-hand, but checking them separately anyway
-    todoForm.addEventListener("submit", addLocalTodo);
-    todosList.addEventListener("click", deleteLocalTodo);
+    todoForm.addEventListener('submit', addLocalTodo);
+    todosList.addEventListener('click', deleteLocalTodo);
 } else if(!support.PouchDB && support.AJAX) {
-    todoForm.addEventListener("submit", addRemoteTodo);
-    todosList.addEventListener("click", deleteRemoteTodo);
+    todoForm.addEventListener('submit', addRemoteTodo);
+    todosList.addEventListener('click', deleteRemoteTodo);
 }
 
 function addLocalTodo(event) {
@@ -85,13 +87,13 @@ function addLocalTodo(event) {
 
             todosList.appendChild(todoMarkup);
 
-            if(document.getElementById("no-todos")) {
-              document.getElementById("no-todos").remove();
+            if(document.getElementById('no-todos')) {
+              document.getElementById('no-todos').remove();
             }
 
             newTodo.value = '';
         } else {
-            console.log("Problem adding new TODO to local database.");
+            console.log('Problem adding new TODO to local database.');
         }
     }).catch(function (err) {
         console.log(err);
@@ -104,8 +106,8 @@ function deleteLocalTodo(event) {
     var todoId;
     var message;
 
-    if(event.target.type === "submit") {
-        todoId = event.target.parentElement.elements[0].value;
+    if(event.target.type === 'submit') {
+        todoId = event.target.parentElement.elements['todoID'].value;
 
         db.get(todoId).then(function(doc) {
             return db.remove(doc);
@@ -114,9 +116,9 @@ function deleteLocalTodo(event) {
             todosCount--;
 
             if (todosCount === 0) {
-              message = document.createElement("P");
-              message.id = "no-todos";
-              message.innerText = "No todos, yet. Add one below to get started.";
+              message = document.createElement('P');
+              message.id = 'no-todos';
+              message.innerText = 'No todos, yet. Add one below to get started.';
               todoForm.parentElement.insertBefore(message, todoForm);
             }
         }).catch(function (err) {
@@ -129,15 +131,15 @@ function deleteLocalTodo(event) {
 
 function addRemoteTodo(event) {
     var url = event.target.action;
-    var data = "listID=" + encodeURIComponent(listID) + "&todo=" +
+    var data = 'listID=' + encodeURIComponent(listID) + '&todo=' +
         encodeURIComponent(newTodo.value);
     var response;
     var todoMarkup;
 
     httpRequest.onreadystatechange = handleResponse;
-    httpRequest.open("POST", url);
-    httpRequest.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    httpRequest.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+    httpRequest.open('POST', url);
+    httpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    httpRequest.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
     httpRequest.send(data);
 
     function handleResponse(event) {
@@ -150,10 +152,10 @@ function addRemoteTodo(event) {
 
                 todosList.appendChild(todoMarkup);
             } else {
-                console.log("Something was wrong with the HTTP request.");
+                console.log('Something was wrong with the HTTP request.');
             }
         } else {
-          console.log("The server did not respond with a 200 status code.");
+          console.log('The server did not respond with a 200 status code.');
         }
       }
     }
@@ -162,22 +164,22 @@ function addRemoteTodo(event) {
 }
 
 function deleteRemoteTodo(event) {
-    if(event.target.type !== "submit") {
+    if(event.target.type !== 'submit') {
         return;
     }
 
     var button = event.target;
     var url = button.parentElement.action;
-    var todoId = button.parentElement.elements[0].value;
-    var data = "listID=" + encodeURIComponent(listID) + "&todoID=" +
-        encodeURIComponent(todoId) + "&_method=DELETE";
+    var todoId = button.parentElement.elements['todoID'].value;
+    var data = 'listID=' + encodeURIComponent(listID) + '&todoID=' +
+        encodeURIComponent(todoId) + '&_method=DELETE';
     var response;
     var todoMarkup;
 
     httpRequest.onreadystatechange = handleResponse;
-    httpRequest.open("POST", url);
-    httpRequest.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    httpRequest.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+    httpRequest.open('POST', url);
+    httpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    httpRequest.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
     httpRequest.send(data);
 
     function handleResponse(event) {
@@ -189,10 +191,10 @@ function deleteRemoteTodo(event) {
                 button.parentElement.parentElement.remove();
                 todosCount--;
             } else {
-                console.log("Something was wrong with the HTTP request.");
+                console.log('Something was wrong with the HTTP request.');
             }
         } else {
-          console.log("The server did not respond with a 200 status code.");
+          console.log('The server did not respond with a 200 status code.');
         }
       }
     }
@@ -215,8 +217,8 @@ function populateList() {
             todosList.removeChild(todosList.firstChild);
         }
 
-        if(document.getElementById("no-todos") && todos.rows.length > 0) {
-            document.getElementById("no-todos").remove();
+        if(document.getElementById('no-todos') && todos.rows.length > 0) {
+            document.getElementById('no-todos').remove();
         }
 
         for(var i = 0; i < todos.rows.length; i++) {
@@ -244,21 +246,11 @@ function createTodoItem(listID, todoId, todo) {
     todoMarkup = todoMarkup.replace(/#{todoID}/g, todoId);
     todoMarkup = todoMarkup.replace(/#{todo_text}/g, todo);
 
-    var listElement = document.createElement("LI");
-    listElement.className = "todo-item";
+    var listElement = document.createElement('LI');
+    listElement.className = 'todo-item';
     listElement.innerHTML = todoMarkup;
 
     todosCount++;
 
     return listElement;
-}
-
-/**
- * Generates an ID for a todo based on timestamp plus random 3 digit number.
- * The recommendation is to use put() over post() and provide an ID
- * to support sorting: http://pouchdb.com/api.html#using-dbpost
- */
-function generateID() {
- return (Math.floor((1 + Math.random()) * 0x100) +
-         (new Date()).getTime()).toString();
 }

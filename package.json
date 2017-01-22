@@ -5,7 +5,7 @@
   "author": "Michael Head",
   "license": "ISC",
   "scripts": {
-    "start": "rollup -c && node app.js"
+    "start": "webpack && node app.js"
   },
   "dependencies": {
     "body-parser": "~1.13.2",
@@ -20,8 +20,8 @@
     "method-override": "^2.3.5",
     "node-uuid": "^1.4.7",
     "pouchdb": "^5.1.0",
-    "rollup": "^0.41.4",
-    "serve-favicon": "~2.3.0"
+    "serve-favicon": "~2.3.0",
+    "webpack": "^1.14.0"
   },
   "devDependencies": {}
 }
