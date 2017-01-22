@@ -2,7 +2,7 @@ var express = require('express');
 var router  = express.Router();
 var pouchdb = require("pouchdb");
 var url     = require("url");
-var utils   = require("../modules/utils");
+var utils   = require("../lib/utils");
 var session     = require("express-session");
 var SQLiteStore = require("connect-sqlite3")(session);
 

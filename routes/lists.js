@@ -5,7 +5,7 @@ var url         = require("url");
 var _           = require("lodash");
 var session     = require("express-session");
 var SQLiteStore = require("connect-sqlite3")(session);
-var getAPIKey   = require("../modules/getAPIKey.js");
+var getAPIKey   = require("../lib/getAPIKey.js");
 
 router.get("/:listID?", function(req, res, next) {
     var listID = req.params ? req.params.listID : null;

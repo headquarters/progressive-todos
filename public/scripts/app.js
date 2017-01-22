@@ -7,7 +7,7 @@
  * the app's runtime, but that isn't addressed currently.
  */
 
-var generateID = require('../../modules/utils').generateID;
+var generateID = require('../../lib/utils').generateID;
 
 var support = {
     'PouchDB': true,

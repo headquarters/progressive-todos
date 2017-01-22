@@ -1,7 +1,7 @@
 var express = require("express");
 var _       = require("lodash");
 var router  = express.Router();
-var utils   = require("../modules/utils");
+var utils   = require("../lib/utils");
 
 /**
  * Home page requests check for existing cookie and redirect to DB from there.
