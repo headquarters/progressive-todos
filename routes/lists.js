@@ -65,7 +65,6 @@ router.get("/:listID?", function(req, res, next) {
                 });
 
             } else {
-                console.log("Generate new API key");
                 getAPIKey(listID, function(credentials) {
                     req.session.apiKey = credentials.key;
                     req.session.apiPassword = credentials.password;

@@ -17,6 +17,8 @@ router.get("/", function(req, res, next) {
   if(_.isEmpty(req.session.listID)) {
       req.session.listID = utils.randomListName();
 
+      // 307 redirect implies the method and body will not change
+      // whereas 302 implies they could change
       res.status(307)
         .redirect("/cookie");
   } else {
